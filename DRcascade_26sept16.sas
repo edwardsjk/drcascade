@@ -1,6 +1,7 @@
 %let source=Y:/Sync/DR; 
-%let output=Y:/Dropbox/Research/measure_linkages/DR/cascade/data;
+%let output=Y:/Dropbox/Research/drcascade/data;
 %let cen='30may2016'd;
+%include "Y:/Box Sync/resources/macros/quickci.sas";
 
 data base; infile "&source./base.dat";
 input  idpat 1-5 idsai 7-12 firsty 14-22 starty 24-32  site 34
@@ -80,70 +81,70 @@ proc freq data=last; tables lost; run;
 
 data p0; set last; by idpat; format lasty nry date9.; keep starty nry idpat t_lost lost male age0 site cd40 vl0 arty lasty haitian;
 run;
-/**/
-/*%quickci(data=p0, t=t_lost, j=lost, out=p01)*/
-/**/
-/*proc export data=p01*/
-/*   outfile="&output/ret.csv"*/
-/*   dbms=dlm;*/
-/*   delimiter=',';*/
-/*run;*/
-/**/
-/*%quickci(data=p1, t=t_art, j=art, out=p11); */
-/*proc export data=p11*/
-/*   outfile="&output/art.csv"*/
-/*   dbms=dlm replace;*/
-/*   delimiter=',';*/
-/*run;*/
-/**/
-/*data p2; set fu;by idpat; if last.idpat; if .<deathy<starty then delete;*/
-/*if deathy ne . then do; td=(deathy-starty)/30.43; dead=1; end;*/
-/*if deathy>&cen or deathy=. then do; td=(&cen-starty)/30.43; dead=0; end;*/
-/*run;*/
-/* */
-/*%quickci(data=p2, t=td, j=dead, out=p21); */
-/*proc export data=p21*/
-/*   outfile="&output/dead.csv"*/
-/*   dbms=dlm replace;*/
-/*   delimiter=',';*/
-/*run;*/
-/**/
-/**/
-/**visit intervals;*/
-/*proc sort data=fu out=fu2; by idpat descending visity; run;*/
-/**/
-/*data vis; set fu2; by idpat ; *retain lost; */
-/*nexty=lag(visity); */
-/*if first.idpat then do; nexty=.; end; */
-/*format nexty date9.;*/
-/*run; */
-/**/
-/*proc sort data=vis; by idpat visity; run;*/
-/**/
-/*data vis; set vis; interval=nexty-visity; planned=next_visity-visity; if interval=0 then delete; run;*/
-/*proc means data=vis mean min max p5 p25 p50 p75 p95; var interval planned; run;*/
-/**/
-/**/
-/**how many vls;*/
-/*proc sort data=fu; by idpat visity; run;*/
-/**time to virst viral load?;*/
-/*data p3; set fu; by idpat visity; if .<vly<=visity; run;*/
-/*data p2b; set p3; by idpat; if first.idpat; firstvly=visity; keep idpat firstvly; run;*/
-/*data p2c; set fu; by idpat; if first.idpat; run;*/
-/*data p2d; merge p2c p2b; by idpat; */
-/*if .<firstvly<=&cen then do;  t_vl=(firstvly-starty)/30.43; hasvl=1; end;*/
-/*else if .<deathy<=&cen then do; t_vl=(deathy-starty)/30.43; hasvl=2; end;*/
-/*else if deathy = . or deathy>&cen then do; t_vl=(&cen-starty)/30.43; hasvl=0; end;*/
-/*run;*/
-/**/
-/*proc freq data=p2d; tables hasvl; run;*/
-/**/
-/*%quickci(data=p2d, t=t_vl, j=hasvl, out=p31); */
-/*proc export data=p31*/
-/*   outfile="&output/vl.csv"*/
-/*   dbms=dlm replace;*/
-/*   delimiter=',';*/
-/*run;*/
+
+%quickci(data=p0, t=t_lost, j=lost, out=p01)
+
+proc export data=p01
+   outfile="&output/ret.csv"
+   dbms=dlm;
+   delimiter=',';
+run;
+
+%quickci(data=p1, t=t_art, j=art, out=p11); 
+proc export data=p11
+   outfile="&output/art.csv"
+   dbms=dlm replace;
+   delimiter=',';
+run;
+
+data p2; set fu;by idpat; if last.idpat; if .<deathy<starty then delete;
+if deathy ne . then do; td=(deathy-starty)/30.43; dead=1; end;
+if deathy>&cen or deathy=. then do; td=(&cen-starty)/30.43; dead=0; end;
+run;
+ 
+%quickci(data=p2, t=td, j=dead, out=p21); 
+proc export data=p21
+   outfile="&output/dead.csv"
+   dbms=dlm replace;
+   delimiter=',';
+run;
+
+
+*visit intervals;
+proc sort data=fu out=fu2; by idpat descending visity; run;
+
+data vis; set fu2; by idpat ; *retain lost; 
+nexty=lag(visity); 
+if first.idpat then do; nexty=.; end; 
+format nexty date9.;
+run; 
+
+proc sort data=vis; by idpat visity; run;
+
+data vis; set vis; interval=nexty-visity; planned=next_visity-visity; if interval=0 then delete; run;
+proc means data=vis mean min max p5 p25 p50 p75 p95; var interval planned; run;
+
+
+*how many vls;
+proc sort data=fu; by idpat visity; run;
+*time to virst viral load?;
+data p3; set fu; by idpat visity; if .<vly<=visity; run;
+data p2b; set p3; by idpat; if first.idpat; firstvly=visity; keep idpat firstvly; run;
+data p2c; set fu; by idpat; if first.idpat; run;
+data p2d; merge p2c p2b; by idpat; 
+if .<firstvly<=&cen then do;  t_vl=(firstvly-starty)/30.43; hasvl=1; end;
+else if .<deathy<=&cen then do; t_vl=(deathy-starty)/30.43; hasvl=2; end;
+else if deathy = . or deathy>&cen then do; t_vl=(&cen-starty)/30.43; hasvl=0; end;
+run;
+
+proc freq data=p2d; tables hasvl; run;
+
+%quickci(data=p2d, t=t_vl, j=hasvl, out=p31); 
+proc export data=p31
+   outfile="&output/vl.csv"
+   dbms=dlm replace;
+   delimiter=',';
+run;
 
 proc sort data=fu; by idpat visity; run;
 *cross sectional cascade;
